@@ -588,6 +588,25 @@ class LyricAutoFiller(QMainWindow):
         preview_layout = QVBoxLayout(preview_group)
         self.lyric_list = QListWidget()
         self.lyric_list.setAlternatingRowColors(True)
+        # 设置列表样式
+        self.lyric_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                selection-background-color: #4169E1;  /* 蓝色 */
+                selection-color: white;
+            }
+            QListWidget::item {
+                padding: 5px;
+                border-bottom: 1px solid #eee;
+            }
+            QListWidget::item:selected {
+                background-color: #4169E1;  /* 蓝色 */
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #E3E3FF;  /* 浅蓝色 */
+            }
+        """)
         preview_layout.addWidget(self.lyric_list)
         layout.addWidget(preview_group)
         
@@ -823,19 +842,15 @@ class LyricAutoFiller(QMainWindow):
     
     def _highlight_current_lyric(self, index):
         """实际的高亮显示操作（在主线程中执行）"""
-        # 清除所有高亮
-        for i in range(self.lyric_list.count()):
-            item = self.lyric_list.item(i)
-            item.setBackground(QColor(255, 255, 255))  # 白色背景
-            item.setForeground(QColor(0, 0, 0))  # 黑色文字
+        # 清除所有选中
+        self.lyric_list.clearSelection()
         
         # 设置当前高亮
         if 0 <= index < self.lyric_list.count():
             item = self.lyric_list.item(index)
-            item.setBackground(QColor(65, 105, 225))  # 蓝色背景
-            item.setForeground(QColor(255, 255, 255))  # 白色文字
-            self.lyric_list.setCurrentItem(item)
-            self.lyric_list.scrollToItem(item)
+            self.lyric_list.setCurrentItem(item)  # 设置当前项
+            item.setSelected(True)  # 设置选中状态
+            self.lyric_list.scrollToItem(item, QAbstractItemView.PositionAtCenter)  # 滚动到中间位置
     
     def execute_action_sequence(self, lyric_text):
         """执行动作序列"""
