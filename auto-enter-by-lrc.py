@@ -588,6 +588,17 @@ class LyricAutoFiller(QMainWindow):
         preview_layout = QVBoxLayout(preview_group)
         self.lyric_list = QListWidget()
         self.lyric_list.setAlternatingRowColors(True)
+        # 添加歌词列表样式
+        self.lyric_list.setStyleSheet("""
+            QListWidget::item {
+                padding: 5px;
+                border-radius: 3px;
+            }
+            QListWidget::item[current="true"] {
+                border: 2px solid #4169E1;
+                background: #F0F8FF;
+            }
+        """)
         preview_layout.addWidget(self.lyric_list)
         layout.addWidget(preview_group)
         
@@ -754,6 +765,7 @@ class LyricAutoFiller(QMainWindow):
             for seconds, lyric in self.lyrics:
                 time_str = f"{int(seconds)//60}:{int(seconds)%60:02d}.{int((seconds - int(seconds)) * 100):02d}"
                 item = QListWidgetItem(f"[{time_str}] {lyric}")
+                item.setData(Qt.UserRole + 1, False)  # 初始化为非当前歌词
                 self.lyric_list.addItem(item)
             
             self.status_label.setText(f"已加载 {len(self.lyrics)} 条歌词")
@@ -823,17 +835,16 @@ class LyricAutoFiller(QMainWindow):
     
     def _highlight_current_lyric(self, index):
         """实际的高亮显示操作（在主线程中执行）"""
-        # 清除所有高亮
+        # 恢复所有歌词的默认样式
         for i in range(self.lyric_list.count()):
             item = self.lyric_list.item(i)
-            item.setBackground(QColor(255, 255, 255))  # 白色背景
-            item.setForeground(QColor(0, 0, 0))  # 黑色文字
-        
-        # 设置当前高亮
+            item.setData(Qt.UserRole + 1, False)  # 用于标记是否是当前歌词
+            self.lyric_list.itemWidget(item)  # 触发样式更新
+
+        # 设置当前歌词的边框样式
         if 0 <= index < self.lyric_list.count():
             item = self.lyric_list.item(index)
-            item.setBackground(QColor(65, 105, 225))  # 蓝色背景
-            item.setForeground(QColor(255, 255, 255))  # 白色文字
+            item.setData(Qt.UserRole + 1, True)  # 标记为当前歌词
             self.lyric_list.setCurrentItem(item)
             self.lyric_list.scrollToItem(item)
     
